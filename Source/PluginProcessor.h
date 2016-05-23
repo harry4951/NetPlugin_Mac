@@ -12,8 +12,8 @@
 #define PLUGINPROCESSOR_H_INCLUDED
 
 #include "../JuceLibraryCode/JuceHeader.h"
-#include "QueueMutexUdp.h"
-#include "ReadNetworkDisplay.h"
+#include "NetDataReceiver.h"
+#include "SwapBuffer.h"
 #include <thread>
 
 
@@ -60,8 +60,7 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
 
 private:
-    //QueueMutexUdp<float> queue;
-    swapBuffer _buffer;
+    SwapBuffer buffer_;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (NetPluginAudioProcessor)
 };

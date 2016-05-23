@@ -15,7 +15,7 @@
 
 //==============================================================================
 NetPluginAudioProcessor::NetPluginAudioProcessor()
-: ReadNetwork(_buffer)
+: ReadNetwork(buffer_)
 {
 }
 
@@ -130,9 +130,11 @@ void NetPluginAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffe
 
     // This is the place where you'd normally do the guts of your plugin's
     // audio processing...
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
+    
+    buffer_.switch_buffers();
+    for (int channel = 0; channel < totalNumOutputChannels; ++channel)
     {
-        float* channelData = buffer.getWritePointer (channel);
+       /* float* channelData = buffer.getWritePointer (channel);
         
         //simple clipper
         for (int i = 0; i < buffer.getNumSamples(); i++)
@@ -141,11 +143,11 @@ void NetPluginAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffe
                 channelData[i] = 0.01f;
             else if (channelData[i] < - 0.01f)
                 channelData[i] = -0.01f;
-        }
+        }*/
         
-        _buffer.switch_buffers();
-        float* buffer_to_send = _buffer.get_head_buffer();
         
+        float* buffer_to_send = buffer_.GetHeadBuffer();
+
         //buffer = buffer_to_send;
         //for (int channel = 0; channel < totalNumOutputChannels; ++channel)
         //{
