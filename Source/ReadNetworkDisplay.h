@@ -6,8 +6,8 @@
 
 using namespace std;
 #define NUM_SAMPLES 1024
-#define BUFFER_SIZE 32
-#define NUM_BUFFER_PACKETS 4
+#define BUFFER_SIZE 64
+#define NUM_BUFFER_PACKETS 8
 
 typedef std::chrono::high_resolution_clock hr_clock;
 typedef std::chrono::time_point<hr_clock> hr_time_point;
@@ -19,7 +19,7 @@ typedef struct NetworkBuffer
 	float buffer[BUFFER_SIZE];
 } NetworkBuffer;
 
-class ReadNetwork: public Thread
+class ReadNetwork: public Thread, public swapBuffer
 {
 public:
 	/*ReadNetwork(QueueMutexUdp<float>& buffer)
@@ -27,7 +27,8 @@ public:
 	{
 	}*/
     
-    ReadNetwork(QueueMutexUdp<float>& buffer);
+    //ReadNetwork(QueueMutexUdp<float>& buffer);
+    ReadNetwork(swapBuffer& buffer);
 
     ~ReadNetwork();
     
@@ -35,16 +36,17 @@ public:
 
 	void run();
 
-	void FindMissingOne(int PacketIdFlag[],int PacketRecvNum);
+	//void FindMissingOne(int PacketIdFlag[],int PacketRecvNum);
 
-	void FillLostPacket(int srcstart, int srcend, int deststart, int sizesubpacket, float buffer[]);
+	//void FillLostPacket(int srcstart, int srcend, int deststart, int sizesubpacket, float buffer[]);
 
-	int getTimerInterval();
+	//int getTimerInterval();
 
-	void stopTimer();
+	//void stopTimer();
 
 private:
-	QueueMutexUdp<float>&  queue_;
+	//QueueMutexUdp<float>&  queue_;
+    swapBuffer& _buffer;
 	DatagramSocket sock;
 
 	float Buff_packets[BUFFER_SIZE * NUM_BUFFER_PACKETS];
@@ -64,18 +66,5 @@ private:
     //std::atomic<int> packet_count=0;
 };
 
-
-class Display
-{
-public:
-
-	Display(QueueMutexUdp<float>& buffer)
-		: queue_(buffer)
-	{}
-
-	void run();
-private:
-	QueueMutexUdp<float>&  queue_;
-};
 
 #endif // __READNETWORKDISPLAY_H__

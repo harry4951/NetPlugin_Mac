@@ -15,16 +15,8 @@
 
 //==============================================================================
 NetPluginAudioProcessor::NetPluginAudioProcessor()
-: ReadNetwork(queue)
-//: Thread("networkThread")
+: ReadNetwork(_buffer)
 {
-    //ReadNetwork read(queue);
-    
-    //start_sock();
-    
-    //thread ReadNetwork_thread(&ReadNetwork::run, &read);
-    
-    //ReadNetwork_thread.join();
 }
 
 NetPluginAudioProcessor::~NetPluginAudioProcessor()
@@ -151,8 +143,14 @@ void NetPluginAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffe
                 channelData[i] = -0.01f;
         }
         
-        buffer.copyFrom(channel, 0, channelData, buffer.getNumSamples());
-
+        _buffer.switch_buffers();
+        float* buffer_to_send = _buffer.get_head_buffer();
+        
+        //buffer = buffer_to_send;
+        //for (int channel = 0; channel < totalNumOutputChannels; ++channel)
+        //{
+            buffer.copyFrom(channel, 0, buffer_to_send, buffer.getNumSamples());
+        //}
         // ..do something to the data...
     }
 }

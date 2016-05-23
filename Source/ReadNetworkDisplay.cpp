@@ -10,12 +10,11 @@ using namespace std;
 
 static const auto NETWORK_TIMEOUT_MS = 10;
 
-ReadNetwork::ReadNetwork(QueueMutexUdp<float>& buffer)
-: Thread ("networkThread"), queue_(buffer),_count(0),_is_timer_running(false),_is_current_packet(true),PacketArrivalIntervalLimit(150)
+ReadNetwork::ReadNetwork(swapBuffer& buffer)
+: Thread ("networkThread"), _buffer(buffer),_count(0),_is_timer_running(false),_is_current_packet(true),PacketArrivalIntervalLimit(150)//queue_(buffer)
 {
     start_sock();
-    //thread ReadNetwork_thread(&ReadNetwork::run);
-    //ReadNetwork_thread.join();
+    
 }
 
 ReadNetwork::~ReadNetwork()
@@ -31,7 +30,6 @@ void ReadNetwork::start_sock()
 		printf("Error: could not connect to UDP port 8888.\n");
 	}
     startThread();
-    //std::this_thread::sleep_for(1s);
 }
 
 NetworkBuffer NetworkBuff;
@@ -39,7 +37,7 @@ void ReadNetwork::run()
 {
 	//int PacketArrivalIntervalLimit = (int)((double)BUFFER_SIZE * (double)NUM_BUFFER_PACKETS / (double)NUM_SAMPLES *1000.0)-1;
 
-    int PacketIdFlag[NUM_BUFFER_PACKETS]={0};
+    //int PacketIdFlag[NUM_BUFFER_PACKETS]={0};
 
 	while (true)
 	{
@@ -50,7 +48,13 @@ void ReadNetwork::run()
 			{
                 //read the data into buffer
                 sock.read(static_cast<void*>(&NetworkBuff), sizeof(NetworkBuff), true, si_other, si_port);// true -> suppose that the packet is complete.
-
+                
+                //set the filled packet number to 1
+                _buffer.mark_filled_packet(NetworkBuff.packet_id_num);
+                
+                //cooy the data to swapBuffer
+                copy(NetworkBuff.buffer, NetworkBuff.buffer + BUFFER_SIZE, _buffer.get_tail_buffer()+ BUFFER_SIZE * NetworkBuff.packet_id_num);
+/*
                 if ((packet_count ==0) && (ExpiredPacketID != NetworkBuff.packet_id) && (!_is_timer_running))
                 {
                     CurrentPacketID = NetworkBuff.packet_id;
@@ -58,18 +62,18 @@ void ReadNetwork::run()
                     _timer_start_instant = hr_clock::now();
                     _is_timer_running = true;
                     //Reset PacketIdFlag to 0
-                    memset(PacketIdFlag, 0, sizeof(PacketIdFlag)*NUM_BUFFER_PACKETS);
+                    //memset(PacketIdFlag, 0, sizeof(PacketIdFlag)*NUM_BUFFER_PACKETS);
                 }
-
-                if(ExpiredPacketID != NetworkBuff.packet_id && (_is_timer_running))
-                {
+*/
+              //  if(ExpiredPacketID != NetworkBuff.packet_id && (_is_timer_running))
+              //  {
                     //store the small id_num who has been read
-                    PacketIdFlag[NetworkBuff.packet_id_num]= 1;
+              //      PacketIdFlag[NetworkBuff.packet_id_num]= 1;
                     //save the buffer data into big buffer
-                    copy(NetworkBuff.buffer, NetworkBuff.buffer + BUFFER_SIZE, Buff_packets + BUFFER_SIZE * NetworkBuff.packet_id_num);
-                    packet_count++;
+                    //copy(NetworkBuff.buffer, NetworkBuff.buffer + BUFFER_SIZE, Buff_packets + BUFFER_SIZE * NetworkBuff.packet_id_num);
+                    //packet_count++;
 
-
+/*
                     if (packet_count == NUM_BUFFER_PACKETS)
                     {
                         //have received all the packet before the timer is due, destroy the timer
@@ -77,16 +81,18 @@ void ReadNetwork::run()
                         //push the data to the queue to display
                         for (int i = 0; i < BUFFER_SIZE * NUM_BUFFER_PACKETS; i++)
                         {
-                            queue_.push(Buff_packets[i]);
+                            //copy(Buff_packets[0], Buff_packets[BUFFER_SIZE * NUM_BUFFER_PACKETS-1],_buffer.get_head_buffer());
+                            //copy(Buff_packets[0], Buff_packets[BUFFER_SIZE * NUM_BUFFER_PACKETS-1],Buff_packets[0]);
                         }
                         packet_count = 0;
                     }
+ */
                 }
 			}
 
 		}
 
-		if (_is_timer_running)
+/*		if (_is_timer_running)
         {
             auto time_elapsed = hr_clock::now() - _timer_start_instant;
             if (time_elapsed > PacketArrivalIntervalLimit)
@@ -97,11 +103,11 @@ void ReadNetwork::run()
                 _is_timer_running = false;
                 packet_count = 0;
             }
-        }
-    }
+        }*/
+    //}
 }
 
-void ReadNetwork::FillLostPacket(int srcstart, int srcend, int deststart, int sizesubpacket, float buffer[])
+/*void ReadNetwork::FillLostPacket(int srcstart, int srcend, int deststart, int sizesubpacket, float buffer[])
 {
     copy(buffer + srcstart * sizesubpacket, buffer + srcend * sizesubpacket, buffer + deststart * sizesubpacket);
 }
@@ -144,14 +150,5 @@ void ReadNetwork::FindMissingOne(int PacketIdFlag[], int PacketRecvNum)
     }
 
 }
-
-void Display::run()
-{
-	while (true)
-	{
-		float num = queue_.pop();
-		printf("%4.2f\n", num);
-		fflush(stdout);
-	}
-}
+*/
 
